@@ -216,20 +216,15 @@ sanity_checks () {
     fi
 
     # Check the mp.conf and do some basic error checking
-    while read LINE; do
-        DLNUM="none"
-        FEED=$(echo $LINE | cut -f1 -d ' ')
-        ARCHIVETYPE=$(echo $LINE | cut -f2 -d ' ')
-        DLNUM=$(echo $LINE | cut -f3 -d ' ')
-
-        # Skip blank lines and lines beginning with '#'
-        if echo $LINE | grep -E '^#|^$' > /dev/null
-                then
-                continue
-        fi
+    # Skip blank lines and lines beginning with '#'
+    grep -vE '^[#$]' $RSSFILE |
+    while read FEED ARCHIVETYPE DLNUM; do
+        if [ -z "$DLNUM" ]
+        then DLNUM="none"
+	fi
 
         if [[ "$DLNUM" != "none" && "$DLNUM" != "all" && \
-            "$DLNUM" != "update" && $DLNUM -lt 1 ]]; then
+            "$DLNUM" != "update" && "$DLNUM" -lt 1 ]]; then
             crunch "Something is wrong with the download type for $FEED. \
                 According to $RSSFILE, it is set to $DLNUM. \
                 It should be set to 'none', 'all', 'update', or a number \
@@ -264,7 +259,7 @@ sanity_checks () {
             DLNUM="update"
         fi
         echo "$FEED $DATADIR $DLNUM" >> $TEMPRSSFILE
-    done < $RSSFILE
+    done
 
     # Backup the $PODLOG if $PODLOG_BACKUP=1
     if [ "$PODLOG_BACKUP" = "1" ]; then
@@ -356,10 +351,7 @@ fetch_podcasts () {
     # Read the mp.conf file and wget any url not already in the
     # podcast.log file:
     NEWDL=0
-    while read LINE; do
-        FEED=$(echo $LINE | cut -f1 -d ' ')
-        DATADIR=$(echo $LINE | cut -f2 -d ' ')
-        DLNUM=$(echo $LINE | cut -f3 -d ' ')
+    while read FEED DATADIR DLNUM; do
         COUNTER=0
 
         if verbose; then
