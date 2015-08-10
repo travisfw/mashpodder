@@ -204,8 +204,8 @@ sanity_checks () {
         mkdir -p $TMPDIR
     fi
 
-    rm -f $TEMPRSSFILE
-    touch $TEMPRSSFILE
+    rm -f "$TEMPRSSFILE" &&
+    touch "$TEMPRSSFILE" || return 1
 
     # Make sure the mp.conf file or the file passed with -c switch exists
     if [ ! -e "$RSSFILE" ]; then
@@ -217,10 +217,10 @@ sanity_checks () {
 
     # Check the mp.conf and do some basic error checking
     # Skip blank lines and lines beginning with '#'
-    grep -vE '^[#$]' $RSSFILE |
+    grep -vE '^(#|[^[:graph:]]|$)' "$RSSFILE" |
     while read FEED ARCHIVETYPE DLNUM; do
         if [ -z "$DLNUM" ]
-        then DLNUM="none"
+        then DLNUM=none
 	fi
 
         if [[ "$DLNUM" != "none" && "$DLNUM" != "all" && \
